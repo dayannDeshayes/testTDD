@@ -1,9 +1,11 @@
 package com.simplon.testtdd.service;
 
 import com.simplon.testtdd.entity.Client;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public interface IClientService {
 
     Client addClient(Client client) throws Exception;

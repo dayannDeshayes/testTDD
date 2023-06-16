@@ -1,22 +1,33 @@
 package com.simplon.testtdd;
 
 import com.simplon.testtdd.entity.Client;
+import com.simplon.testtdd.repository.IClientRepository;
 import com.simplon.testtdd.service.IClientService;
 import org.junit.jupiter.api.*;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
-import javax.xml.crypto.Data;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("application-test.properties")
 public class ClientServiceTest {
 
     @Autowired
     private IClientService clientService;
+
+    @MockBean
+    private IClientRepository clientRepository;
+
 
     @Test
     public void testAddClient_noClient_invalid() {
@@ -24,18 +35,26 @@ public class ClientServiceTest {
     }
 
     @Test
-    public void testAddClient_save_valid() throws Exception {
-        Client client1 = clientService.addClient(createClient_beforeSave());
-        Client client2 = createClient_afterSave();
+    public void addClient_test() throws Exception {
+        Client client = new Client();
+        when(clientRepository.save(ArgumentMatchers.any(Client.class))).thenReturn(client);
 
-        Assertions.assertEquals(client1.getId(), client2.getId());
-        Assertions.assertEquals(client1.getEmail(), client2.getEmail());
-        Assertions.assertEquals(client1.getNom(), client2.getNom());
-        Assertions.assertEquals(client1.getPrenom(), client2.getPrenom());
-        Assertions.assertEquals(client1.getNumeroTelephone(), client2.getNumeroTelephone());
-        Assertions.assertEquals(client1.getDateNaissance(), client2.getDateNaissance());
-        Assertions.assertEquals(client1.getSexe(), client2.getSexe());
-        Assertions.assertEquals(client1.getIsActive(), client2.getIsActive());
+        Client created = clientService.addClient(client);
+
+        assertEquals(client, created);
+        verify(clientRepository, times(1)).save(client);
+    }
+
+    @Test
+    public void getAllClients_test() {
+        Client client1 = new Client();
+        Client client2 = new Client();
+        when(clientRepository.findAll()).thenReturn(Arrays.asList(client1, client2));
+
+        List<Client> clients = clientService.getAllClients();
+
+        assertEquals(2, clients.size());
+        verify(clientRepository, times(1)).findAll();
     }
 
     @Test
@@ -45,57 +64,100 @@ public class ClientServiceTest {
 
     @Test
     public void testGetClientById() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> clientService.getClientById(1));
+        Assertions.assertThrows(Exception.class, () -> clientService.getClientById(null));
+    }
+
+    @Test
+    public void getClientById_test() throws Exception {
+        Client client = new Client();
+        when(clientRepository.findById(any(Integer.class))).thenReturn(Optional.of(client));
+
+        Client found = clientService.getClientById(1);
+
+        assertEquals(client, found);
+        verify(clientRepository, times(1)).findById(1);
     }
 
     @Test
     public void testGetClientByEmail() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> clientService.getClientByEmail("test@gmail.com"));
+        Assertions.assertThrows(Exception.class, () -> clientService.getClientByEmail(null));
+    }
+
+    @Test
+    public void getClientByEmail_test() throws Exception {
+        Client client = new Client();
+        when(clientRepository.findByEmail(any(String.class))).thenReturn(client);
+
+        Client found = clientService.getClientByEmail("test@example.com");
+
+        assertEquals(client, found);
+        verify(clientRepository, times(1)).findByEmail("test@example.com");
     }
 
     @Test
     public void testGetClientsBySexe() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> clientService.getClientsBySexe(Client.Sexe.FEMME));
+        Assertions.assertThrows(Exception.class, () -> clientService.getClientsBySexe(null));
+    }
+
+    @Test
+    public void getClientsBySexe_test() throws Exception {
+        Client client1 = new Client();
+        Client client2 = new Client();
+        when(clientRepository.findBySexe(any(Client.Sexe.class))).thenReturn(Arrays.asList(client1, client2));
+
+        List<Client> clients = clientService.getClientsBySexe(Client.Sexe.FEMME);
+
+        assertEquals(2, clients.size());
+        verify(clientRepository, times(1)).findBySexe(Client.Sexe.FEMME);
     }
 
     @Test
     public void testDeleteClient() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> clientService.deleteClient(1));
+        Assertions.assertThrows(Exception.class, () -> clientService.deleteClient(null));
+    }
+
+    @Test
+    public void deleteClient_test() throws Exception {
+        doNothing().when(clientRepository).deleteById(any(Integer.class));
+
+        clientService.deleteClient(1);
+
+        verify(clientRepository, times(1)).deleteById(1);
     }
 
     @Test
     public void testDisableClient() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> clientService.disableClient(1));
+        Assertions.assertThrows(Exception.class, () -> clientService.disableClient(null));
     }
 
     @Test
+    public void disableClient_test() throws Exception {
+        Client client = new Client();
+        client.setIsActive(true);
+        when(clientRepository.findById(any(Integer.class))).thenReturn(Optional.of(client));
+        when(clientRepository.save(any(Client.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Client disabled = clientService.disableClient(1);
+
+        Assertions.assertFalse(disabled.getIsActive());
+        verify(clientRepository, times(1)).save(any(Client.class));
+    }
+
+
+    @Test
     public void testupdateClient() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> clientService.updateClient(new Client()));
+        Assertions.assertThrows(Exception.class, () -> clientService.updateClient(null));
     }
 
-    public Client createClient_beforeSave() {
+
+    @Test
+    public void updateClient_test() throws Exception {
         Client client = new Client();
-        client.setNom("test");
-        client.setPrenom("test");
-        client.setEmail("test@gmail.com");
-        client.setSexe(Client.Sexe.FEMME);
-        client.setDateNaissance(new Date("01/01/2000"));
-        client.setIsActive(true);
-        client.setNumeroTelephone("0606060606");
-        return client;
-    }
+        when(clientRepository.save(any(Client.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-    public Client createClient_afterSave() {
-        Client client = new Client();
-        client.setId(1);
-        client.setNom("test");
-        client.setPrenom("test");
-        client.setEmail("test@gmail.com");
-        client.setSexe(Client.Sexe.FEMME);
-        client.setDateNaissance(new Date("01/01/2000"));
-        client.setIsActive(true);
-        client.setNumeroTelephone("0606060606");
-        return client;
-    }
+        Client updated = clientService.updateClient(client);
 
+        assertEquals(client, updated);
+        verify(clientRepository, times(1)).save(client);
+    }
 }

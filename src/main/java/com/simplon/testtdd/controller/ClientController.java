@@ -1,9 +1,6 @@
 package com.simplon.testtdd.controller;
 
 import com.simplon.testtdd.entity.Client;
-import com.simplon.testtdd.entity.dto.ClientDto;
-import com.simplon.testtdd.entity.mapper.ClientMapper;
-import com.simplon.testtdd.service.ClientService;
 import com.simplon.testtdd.service.IClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,43 +14,29 @@ public class ClientController {
     @Autowired
     private IClientService clientService;
 
-    private ClientMapper clientMapper;
-
     @PostMapping("/save")
-    public Client saveClient(@RequestBody ClientDto clientDto) throws Exception {
-        return this.clientService.addClient(clientMapper.toClient(clientDto));
+    public Client saveClient(@RequestBody Client client) throws Exception {
+        return this.clientService.addClient(client);
     }
 
     @GetMapping("/clients")
-    public List<ClientDto> getAllClients() {
-        List<ClientDto> clientDtoList = null;
-        List<Client> clientList = this.clientService.getAllClients();
-
-        for (Client client : clientList) {
-            clientDtoList.add(clientMapper.toClientDto(client));
-        }
-        return clientDtoList;
+    public List<Client> getAllClients() {
+        return this.clientService.getAllClients();
     }
 
     @GetMapping("/{id}")
-    public ClientDto getClientById(@PathVariable Integer id) throws Exception {
-        return clientMapper.toClientDto(this.clientService.getClientById(id));
+    public Client getClientById(@PathVariable Integer id) throws Exception {
+        return this.clientService.getClientById(id);
     }
 
     @GetMapping("/{email}")
-    public ClientDto getClientByEmail(@PathVariable String email) throws Exception {
-        return clientMapper.toClientDto(this.clientService.getClientByEmail(email));
+    public Client getClientByEmail(@PathVariable String email) throws Exception {
+        return this.clientService.getClientByEmail(email);
     }
 
     @GetMapping("/{sexe}")
-    public List<ClientDto> getClientsBySexe(@PathVariable Client.Sexe sexe) throws Exception {
-        List<ClientDto> clientDtoList = null;
-        List<Client> clientList = this.clientService.getClientsBySexe(sexe);
-
-        for (Client client : clientList) {
-            clientDtoList.add(clientMapper.toClientDto(client));
-        }
-        return clientDtoList;
+    public List<Client> getClientsBySexe(@PathVariable Client.Sexe sexe) throws Exception {
+        return this.clientService.getClientsBySexe(sexe);
     }
 
     @DeleteMapping("/{id}")
@@ -62,13 +45,13 @@ public class ClientController {
     }
 
     @PutMapping("/update")
-    public ClientDto updateClient(@RequestBody ClientDto clientDto) throws Exception {
-        return clientMapper.toClientDto(this.clientService.updateClient(clientMapper.toClient(clientDto)));
+    public Client updateClient(@RequestBody Client client) throws Exception {
+        return this.clientService.updateClient(client);
     }
 
     @PutMapping("/disable/{id}")
-    public ClientDto disableClient(@PathVariable Integer id) throws Exception {
-        return clientMapper.toClientDto(this.clientService.disableClient(id));
+    public Client disableClient(@PathVariable Integer id) throws Exception {
+        return this.clientService.disableClient(id);
     }
 
 }
